@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">CastTest</string>
+    <string name="app_id">4F8B3483</string>
+    <string name="intro_overlay_text">Introducting Cast</string>
 </resources>
