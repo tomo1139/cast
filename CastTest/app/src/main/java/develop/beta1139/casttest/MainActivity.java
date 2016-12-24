@@ -1,18 +1,28 @@
 package develop.beta1139.casttest;
 
+import android.net.Uri;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
+import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaMetadata;
+import com.google.android.gms.common.images.WebImage;
 import com.google.android.libraries.cast.companionlibrary.cast.CastConfiguration;
 import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
 import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumer;
 import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumerImpl;
+import com.google.android.libraries.cast.companionlibrary.cast.exceptions.NoConnectionException;
+import com.google.android.libraries.cast.companionlibrary.cast.exceptions.TransientNetworkDisconnectionException;
 import com.google.android.libraries.cast.companionlibrary.widgets.IntroductoryOverlay;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,9 +36,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        setupActionBar();
         initCastManager();
         mVideoCastConsumer = new VideoCastConsumerImpl() {
             @Override
@@ -40,6 +48,52 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         mVideoCastManager.addVideoCastConsumer(mVideoCastConsumer);
+
+        setContentView(R.layout.activity_main);
+        setupActionBar();
+
+        setupButton();
+    }
+
+    private void setupButton() {
+        Button button = (Button) findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/CastVideos/hls/DesigningForGoogleCast.m3u8";
+                String imgUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/CastVideos/images/480x270/DesigningForGoogleCast2-480x270.jpg";
+                String bigImageUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/CastVideos/images/780x1200/DesigningForGoogleCast-887x1200.jpg";
+                String contentType = "application/x-mpegurl";
+
+                MediaMetadata movieMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
+                movieMetadata.putString(MediaMetadata.KEY_TITLE, "title");
+                movieMetadata.putString(MediaMetadata.KEY_SUBTITLE, "subtitle");
+                movieMetadata.addImage(new WebImage(Uri.parse(imgUrl)));
+                movieMetadata.addImage(new WebImage(Uri.parse(bigImageUrl)));
+
+                JSONObject jsonObject = null;
+                try {
+                    jsonObject = new JSONObject();
+                    jsonObject.put("description", "description");
+                } catch (JSONException e) {
+
+                }
+
+                MediaInfo mediaInfo = new MediaInfo.Builder(url)
+                        .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                        .setContentType(contentType)
+                        .setMetadata(movieMetadata)
+                        .setCustomData(jsonObject)
+                        .build();
+                try {
+                    mVideoCastManager.loadMedia(mediaInfo, true, 0);
+                } catch (TransientNetworkDisconnectionException e) {
+                    e.printStackTrace();
+                } catch (NoConnectionException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void showOverlay() {
@@ -103,6 +157,9 @@ public class MainActivity extends AppCompatActivity {
                 .enableNotification()
                 .addNotificationAction(CastConfiguration.NOTIFICATION_ACTION_PLAY_PAUSE,true)
                 .addNotificationAction(CastConfiguration.NOTIFICATION_ACTION_DISCONNECT,true)
+                .addNotificationAction(CastConfiguration.NOTIFICATION_ACTION_SKIP_PREVIOUS, false)
+                .addNotificationAction(CastConfiguration.NOTIFICATION_ACTION_SKIP_NEXT, false)
+                .addNotificationAction(CastConfiguration.NOTIFICATION_ACTION_FORWARD, false)
                 .build();
         VideoCastManager.initialize(this,options);
         mVideoCastManager = VideoCastManager.getInstance().getInstance();

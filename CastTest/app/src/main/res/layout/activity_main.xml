@@ -17,4 +17,18 @@
         android:background="?attr/colorPrimary">
     </android.support.v7.widget.Toolbar>
 
+    <Button
+        android:id="@+id/button"
+        android:text="button"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <com.google.android.libraries.cast.companionlibrary.widgets.MiniController android:id="@+id/miniController"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        app:auto_setup="true"
+        android:visibility="gone">
+        </com.google.android.libraries.cast.companionlibrary.widgets.MiniController>
 </RelativeLayout>
